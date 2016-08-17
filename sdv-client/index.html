@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="sdv">
+<head>
+    <!-- Use correct character set. -->
+    <meta charset="utf-8">
+    <!-- Tell IE to use the latest, best version. -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Make the application on mobile take up the full browser screen and disable user scaling. -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>SDV</title>
+    <script src="/static/javascript/angular.min.js"></script>
+    <script src="/static/javascript/dat.gui.js"></script>
+    <script src="/static/javascript/Cesium.js"></script>
+    <script src="/static/javascript/filtering.js"></script>
+    <script src="/static/javascript/data-viewer.js"></script>
+    <script src="/static/javascript/file-loading.js"></script>
+    <script src="/static/javascript/entity-utils.js"></script>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @import url(/static/css/widgets.css);
+
+        html, body, #cesiumContainer {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .container-table {
+            height: 100%;
+        }
+        .container-table {
+            display: table;
+        }
+        .vertical-center-row {
+            display: table-cell;
+            vertical-align: middle;
+            horiz-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div ng-controller="MainController">
+    </div>
+    <div id="cesiumContainer">
+    </div>
+</body>
+</html>

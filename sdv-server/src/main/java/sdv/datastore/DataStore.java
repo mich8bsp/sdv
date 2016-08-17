@@ -32,8 +32,8 @@ public class DataStore {
         return updatedCorrelations.values();
     }
 
-    public Collection<SensorReading> getReadingsAtTime(long time){
-        return sensorReadings.values().stream().filter(r -> r.getData().getTime()<=time).collect(Collectors.toList());
+    public Collection<SensorReading> getReadingsAtTime(long startTime, long endTime){
+        return sensorReadings.values().stream().filter(r -> r.getData().getTime()>=startTime && r.getData().getTime()<endTime).collect(Collectors.toList());
     }
 
     public Collection<Optional<FusedTrack>> getTrackAtTime(long time){
@@ -58,5 +58,22 @@ public class DataStore {
 
     public void sortCorrelations() {
         correlations.sort((c1, c2)->Long.compare(c1.getTimeOfCorrelation(), c2.getTimeOfCorrelation()));
+    }
+
+
+    public long getStartTime() {
+        Optional<Long> firstReading = sensorReadings.values().stream().map(r -> r.getData().getTime()).min(Long::compare);
+        Optional<Long> firstTrack = fusedTracks.values().stream().map(t -> t.getData().getTime()).min(Long::compare);
+        return firstReading.orElse(firstTrack.orElse(0L));
+    }
+
+    public long getEndTime() {
+        Optional<Long> lastReading = sensorReadings.values().stream().map(r -> r.getData().getTime()).max(Long::compare);
+        Optional<Long> lastTrack = fusedTracks.values().stream().map(t -> t.getData().getTime()).max(Long::compare);
+        return lastReading.orElse(lastTrack.orElse(Long.MAX_VALUE));
+    }
+
+    public void updateReadingWithCesiumId(DataId id, String cesiumId) {
+        sensorReadings.get(id.getSensorId()).stream().filter(r -> r.getReadingId().getId() == id.getId()).findAny().ifPresent(reading -> reading.setCesiumId(cesiumId));
     }
 }

@@ -1,23 +1,26 @@
 package sdv;
 
+import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.StaticHandler;
 import sdv.datastore.DataStore;
 import sdv.datastructures.DataId;
 import sdv.datastructures.FusedTrack;
 import sdv.datastructures.SensorReading;
 import sdv.datastructures.TrackCorrelation;
-import io.vertx.core.Vertx;
-import io.vertx.core.http.HttpServer;
-import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.JsonArray;
-import io.vertx.ext.web.Router;
-import io.vertx.ext.web.RoutingContext;
 import sdv.parsing.FusedTrackInputParser;
 import sdv.parsing.SensorReadingInputParser;
 import sdv.parsing.TrackCorrelationInputParser;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 /**
  * Created by mich8bsp on 15-Aug-16.
@@ -36,14 +39,35 @@ public class Server {
         HttpServer server = vertx.createHttpServer();
 
         Router router = Router.router(vertx);
+        router.route().handler(BodyHandler.create());
+        //   router.route("/tracks/:time").handler(routingContext -> handleRequest(routingContext, this::getTracksJson));
+        //  router.route("/track/:sensorId/:trackId/:time").handler(this::handleTrackRequest);
+        router.route("/readings/:start/:end").handler(routingContext -> handleRequest(routingContext, this::getReadingsJson));
+        router.post("/newreadings/").handler(this::addMapping);
+        //   router.route("/correlations/:time").handler(routingContext -> handleRequest(routingContext, this::getCorrelationsJson));
+        router.route("/timeframe").handler(this::getTimeframe);
 
-        router.route("/tracks/:time").handler(routingContext -> handleRequest(routingContext, this::getTracksJson));
-        router.route("/track/:sensorId/:trackId/:time").handler(this::handleTrackRequest);
-        router.route("/readings/:time").handler(routingContext -> handleRequest(routingContext, this::getReadingsJson));
-        router.route("/correlations/:time").handler(routingContext -> handleRequest(routingContext, this::getCorrelationsJson));
-
+        router.route("/static/*").handler(StaticHandler.create("sdv-client").setCachingEnabled(false));
+        router.get("/sdv").handler(context -> context.reroute("/static/index.html"));
+        router.route("/favicon.ico").handler(StaticHandler.create("sdv-client").setCachingEnabled(false));
+        router.route("/logo.png").handler(StaticHandler.create("sdv-client").setCachingEnabled(false));
 
         server.requestHandler(router::accept).listen(8080);
+    }
+
+    private void addMapping(RoutingContext routingContext) {
+        System.out.println("Got back json " + routingContext.getBodyAsString());
+        JsonArray allNewMappings = routingContext.getBodyAsJsonArray();
+        allNewMappings.stream().forEach(mapping -> {
+            JsonObject newMapping = (JsonObject) mapping;
+            DataId id = new DataId(newMapping.getInteger("id"), newMapping.getInteger("sensorId"));
+            store.updateReadingWithCesiumId(id, newMapping.getString("cesiumId"));
+        });
+
+        routingContext.response()
+                .setStatusCode(201)
+                .putHeader("content-type", "application/json; charset=utf-8")
+                .end();
     }
 
 
@@ -54,14 +78,29 @@ public class Server {
     }
 
 
-    private void handleRequest(RoutingContext context, Function<Long, JsonArray> jsonParser) {
-        String requestedTime = context.request().getParam("time");
-        if (requestedTime != null) {
-            long time = Long.parseLong(requestedTime);
+    private void getTimeframe(RoutingContext context) {
+        HttpServerResponse response = context.response();
+        response.putHeader("content-type", "application/json");
+        JsonObject resultJson = new JsonObject();
+        resultJson.put("start", store.getStartTime());
+        resultJson.put("end", store.getEndTime());
+        // Write to the response and end it
+        response.setChunked(true);
+        System.out.println("Got timeframe request, returning " + resultJson.toString());
+        response.write(resultJson.toString());
+        response.end();
+    }
+
+    private void handleRequest(RoutingContext context, BiFunction<Long, Long, JsonArray> jsonParser) {
+        String startTimeStr = context.request().getParam("start");
+        String endTimeStr = context.request().getParam("end");
+        if (startTimeStr != null && endTimeStr != null) {
+            long startTime = Long.parseLong(startTimeStr);
+            long endTime = Long.parseLong(endTimeStr);
             HttpServerResponse response = context.response();
             response.putHeader("content-type", "application/json");
             response.setChunked(true);
-            JsonArray resultJson = jsonParser.apply(time);
+            JsonArray resultJson = jsonParser.apply(startTime, endTime);
             // Write to the response and end it
             response.write(resultJson.toString());
             response.end();
@@ -104,8 +143,9 @@ public class Server {
         return res;
     }
 
-    private JsonArray getReadingsJson(long time) {
-        Collection<SensorReading> readings = store.getReadingsAtTime(time);
+    private JsonArray getReadingsJson(long startTime, long endTime) {
+        System.out.println("Got request for readings " + startTime + " till " + endTime);
+        Collection<SensorReading> readings = store.getReadingsAtTime(startTime, endTime);
         JsonArray res = new JsonArray();
         for (SensorReading reading : readings) {
             res.add(reading.toJson());

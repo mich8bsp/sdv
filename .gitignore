@@ -2,3 +2,4 @@
 .vertx/*
 */target/*
 *.iml
+*.csv

@@ -42,17 +42,12 @@ public class Server {
         router.route().handler(BodyHandler.create());
         router.route("/tracks/:start/:end").handler(routingContext -> handleRequest(routingContext, this::getTracksJson));
         router.route("/readings/:start/:end").handler(routingContext -> handleRequest(routingContext, this::getReadingsJson));
-        router.post("/newreadings/").handler(context -> addMapping(context, store::updateReadingWithCesiumId));
-//        router.post("/newtracks/").handler(context -> addMapping(context, store::updateTrackWithCesiumId));
-//        router.post("/newstates/").handler(context -> addMapping(context, store::updateTrackStateWithCesiumId));
+        router.post("/newreadings-mapping/").handler(context -> addMapping(context, store::updateReadingWithCesiumId));
         //   router.route("/correlations/:time").handler(routingContext -> handleRequest(routingContext, this::getCorrelationsJson));
         router.route("/timeframe").handler(this::getTimeframe);
 
         router.route("/static/*").handler(StaticHandler.create("sdv-client").setCachingEnabled(false));
         router.get("/sdv").handler(context -> context.reroute("/static/index.html"));
-//        router.route("/favicon.ico").handler(StaticHandler.create("sdv-client").setCachingEnabled(false));
-//        router.route("/logo.png").handler(StaticHandler.create("sdv-client").setCachingEnabled(false));
-//        router.route("/Duck.glb").handler(StaticHandler.create("sdv-client").setCachingEnabled(false));
 
         server.requestHandler(router::accept).listen(8080);
     }

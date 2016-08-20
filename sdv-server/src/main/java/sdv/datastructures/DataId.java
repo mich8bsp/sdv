@@ -48,4 +48,31 @@ public class DataId implements Comparable {
         json.put("sensorId", sensorId);
         return json;
     }
+
+    @Override
+    public String toString() {
+        return "DataId{" +
+                "id=" + id +
+                ", sensorId=" + sensorId +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        DataId dataId = (DataId) o;
+
+        if (id != dataId.id) return false;
+        return sensorId == dataId.sensorId;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id;
+        result = 31 * result + sensorId;
+        return result;
+    }
 }

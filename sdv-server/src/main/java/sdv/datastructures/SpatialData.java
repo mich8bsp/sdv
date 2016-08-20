@@ -11,6 +11,32 @@ public class SpatialData {
     private double lat;
     private double alt;
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SpatialData that = (SpatialData) o;
+
+        if (Double.compare(that.lon, lon) != 0) return false;
+        if (Double.compare(that.lat, lat) != 0) return false;
+        return Double.compare(that.alt, alt) == 0;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        temp = Double.doubleToLongBits(lon);
+        result = (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(lat);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(alt);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        return result;
+    }
+
     public SpatialData(long time, double lon, double lat, double alt) {
         this.time = time;
         this.lon = lon;
@@ -57,5 +83,15 @@ public class SpatialData {
         json.put("lat", lat);
         json.put("alt", alt);
         return json;
+    }
+
+    @Override
+    public String toString() {
+        return "SpatialData{" +
+                "time=" + time +
+                ", lon=" + lon +
+                ", lat=" + lat +
+                ", alt=" + alt +
+                '}';
     }
 }

@@ -12,8 +12,9 @@ public class FusedTrack extends AbstractData implements Comparable{
     private DataId id;
     private SpatialData data;
 
-    public static Optional<FusedTrack> aggregateUpdates(Collection<FusedTrack> fusedTracks, long time) {
-        return fusedTracks.stream().filter(t -> t.getData().getTime()<=time).max((tr1, tr2)->Long.compare(tr1.getData().getTime(), tr2.getData().getTime()));
+    public FusedTrack(){}
+    public FusedTrack(DataId key) {
+        this.id=key;
     }
 
     public DataId getId() {
@@ -47,7 +48,9 @@ public class FusedTrack extends AbstractData implements Comparable{
     public JsonObject toJson(){
         JsonObject json = new JsonObject();
         json.mergeIn(id.toJson());
-        json.mergeIn(data.toJson());
+        if(data!=null) {
+            json.mergeIn(data.toJson());
+        }
         json.mergeIn(super.toJson());
         return json;
     }

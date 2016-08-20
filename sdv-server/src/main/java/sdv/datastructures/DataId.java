@@ -7,6 +7,8 @@ import io.vertx.core.json.JsonObject;
  */
 public class DataId implements Comparable {
 
+    public static final int INVALID_ID = -1;
+
     private int id;
 
     private int sensorId;

@@ -53,6 +53,9 @@ app.controller('MainController', function($scope, $http){
                                 }
                             });
                     }
+                    $http.get("/track-correlation/"+timeOfFirst +"/" + currentTimeMS).then(function(response){
+                        $scope.trackCorrelations = response.data;
+                    });
                     Cesium.JulianDate.clone(clock.currentTime, lastTime);
                 }
             }
@@ -133,7 +136,6 @@ app.controller('MainController', function($scope, $http){
             }
 
              $http.post("/newreadings-mapping/", cesiumIdMappings).success(function(data, status, headers, config) {
-               	    console.log("post was success");
             	}).error(function(data,status,headers,config){
           		    console.log("post was unsuccessful");
               });

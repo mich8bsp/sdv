@@ -14,7 +14,10 @@
     <script src="/static/javascript/Cesium.js"></script>
     <script src="/static/javascript/data-viewer.js"></script>
     <script src="/static/javascript/entity-utils.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
         @import url(/static/css/widgets.css);
 
@@ -36,10 +39,23 @@
             vertical-align: middle;
             horiz-align: center;
         }
+
+        #track-correlations {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            padding: 5px 8px;
+            border-radius: 5px;
+            z-index: 9;
+        }
     </style>
 </head>
 <body>
-    <div ng-controller="MainController">
+    <div ng-controller="MainController" id="track-correlations">
+        <div class="btn-group-vertical" ng-repeat="correlation in trackCorrelations">
+            <button type="button" class="btn btn-primary" ng-repeat="trackId in correlation"> {{ trackId }}</button>
+        </div>
+
     </div>
     <div id="cesiumContainer">
     </div>

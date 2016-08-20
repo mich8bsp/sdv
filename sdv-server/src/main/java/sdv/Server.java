@@ -43,7 +43,7 @@ public class Server {
         router.route("/tracks/:start/:end").handler(routingContext -> handleRequest(routingContext, this::getTracksJson));
         router.route("/readings/:start/:end").handler(routingContext -> handleRequest(routingContext, this::getReadingsJson));
         router.post("/newreadings-mapping/").handler(context -> addMapping(context, store::updateReadingWithCesiumId));
-        //   router.route("/correlations/:time").handler(routingContext -> handleRequest(routingContext, this::getCorrelationsJson));
+        router.route("/track-correlation/:start/:end").handler(routingContext -> handleRequest(routingContext, this::getCorrelationsJson));
         router.route("/timeframe").handler(this::getTimeframe);
 
         router.route("/static/*").handler(StaticHandler.create("sdv-client").setCachingEnabled(false));
@@ -108,34 +108,6 @@ public class Server {
         }
     }
 
-//    private void handleTrackRequest(RoutingContext context) {
-//        String requestedTime = context.request().getParam("time");
-//        String requestedTrackId = context.request().getParam("trackId");
-//        String requestedSensorId = context.request().getParam("sensorId");
-//        if (requestedTime != null) {
-//            long time = Long.parseLong(requestedTime);
-//            int trackId = Integer.parseInt(requestedTrackId);
-//            int sensorId = Integer.parseInt(requestedSensorId);
-//            HttpServerResponse response = context.response();
-//            response.putHeader("content-type", "application/json");
-//            response.setChunked(true);
-//            JsonArray resultJson = getTrackUpdates(trackId, sensorId, time);
-//            // Write to the response and end it
-//            response.write(resultJson.toString());
-//            response.end();
-//        }
-//    }
-//
-//    private JsonArray getTrackUpdates(int trackId, int sensorId, long time) {
-//        Collection<FusedTrack> updates = store.getTrackUpdatesAtTime(time, new DataId(trackId, sensorId));
-//
-//        JsonArray res = new JsonArray();
-//        for (FusedTrack track : updates) {
-//            res.add(track.toJson());
-//        }
-//        return res;
-//    }
-
 
     private JsonArray getTracksJson(long startTime, long endTime) {
         Map<DataId, Collection<FusedTrack>> updatesPerTrack = store.getTrackUpdatesAtTime(startTime, endTime);
@@ -159,20 +131,15 @@ public class Server {
         return res;
     }
 
-    private JsonArray getTrackStatesJson(long lastTime, long currentTime) {
-        Collection<FusedTrackState> states = store.getTrackStatesAtTime(currentTime);
+    private JsonArray getCorrelationsJson(long startTime, long endTime) {
+        Collection<Collection<DataId>> groupsOfTracks = store.getCorrelationsAtTime(startTime, endTime);
         JsonArray res = new JsonArray();
-        for(FusedTrackState state : states){
-            res.add(state.toJson());
-        }
-        return res;
-    }
-
-    private JsonArray getCorrelationsJson(long time) {
-        Collection<TrackCorrelation> correlations = store.getCorrelationsAtTime(time);
-        JsonArray res = new JsonArray();
-        for (TrackCorrelation correlation : correlations) {
-            res.add(correlation.toJson());
+        for (Collection<DataId> correlation : groupsOfTracks) {
+            JsonArray corrJson = new JsonArray();
+            for(DataId id : correlation){
+                corrJson.add(id.toJson());
+            }
+            res.add(corrJson);
         }
         return res;
     }

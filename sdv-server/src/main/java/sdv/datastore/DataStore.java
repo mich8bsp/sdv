@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
  */
 public class DataStore {
 
-    private Map<DataId, String> cesiumIdsOfTraces = new HashMap<>();
     private ListMultimap<Integer, SensorReading> sensorReadings = LinkedListMultimap.create();
     private TreeMultimap<DataId, FusedTrack> fusedTracks = TreeMultimap.create();
     private List<TrackCorrelation> correlations = new LinkedList<>();
@@ -21,17 +20,40 @@ public class DataStore {
     private long endTime;
 
 
-    public Collection<TrackCorrelation> getCorrelationsAtTime(long time){
-        List<TrackCorrelation> relevantCorrelations = correlations.stream().filter(corr -> corr.getTimeOfCorrelation()<=time).collect(Collectors.toList());
+    public Collection<Collection<DataId>> getCorrelationsAtTime(long startTime, long endTime){
+        List<TrackCorrelation> relevantCorrelations = correlations.stream().filter(corr -> corr.getTimeOfCorrelation()>=startTime && corr.getTimeOfCorrelation()<=endTime).collect(Collectors.toList());
+        System.out.println("Checking relevant correlations for " +startTime + "," + endTime + " there were " + relevantCorrelations.size());
         //each track can only be correlated to one track
         Map<DataId, TrackCorrelation> updatedCorrelations = new HashMap<>();
         for(TrackCorrelation correlation : relevantCorrelations){
-            TrackCorrelation existing = updatedCorrelations.get(correlation.getSource());
-            if(existing==null || existing.getTimeOfCorrelation()<correlation.getTimeOfCorrelation()){
-                updatedCorrelations.put(correlation.getSource(), correlation);
+            if(correlation.getCorrelated().getId()==DataId.INVALID_ID || correlation.getCorrelated().getSensorId()==DataId.INVALID_ID){
+                //this means it's no longer correlated
+                updatedCorrelations.remove(correlation.getSource());
+            }else {
+                TrackCorrelation existing = updatedCorrelations.get(correlation.getSource());
+                if (existing == null || existing.getTimeOfCorrelation() < correlation.getTimeOfCorrelation()) {
+                    updatedCorrelations.put(correlation.getSource(), correlation);
+                }
             }
         }
-        return updatedCorrelations.values();
+
+        HashMultimap<Integer, DataId> groupToTracksInCorrelation = HashMultimap.create();
+        Map<DataId, Integer> idToGroup = new HashMap<>();
+        int counter = 1;
+        for(TrackCorrelation correlation : updatedCorrelations.values()){
+            if(!groupToTracksInCorrelation.values().contains(correlation.getCorrelated())){
+                groupToTracksInCorrelation.put(counter, correlation.getCorrelated());
+                groupToTracksInCorrelation.put(counter, correlation.getSource());
+                idToGroup.put(correlation.getSource(), counter);
+                idToGroup.put(correlation.getCorrelated(), counter);
+                counter++;
+            }else{
+                int groupIdToAddTo = idToGroup.get(correlation.getCorrelated());
+                groupToTracksInCorrelation.put(groupIdToAddTo, correlation.getSource());
+                idToGroup.put(correlation.getSource(), groupIdToAddTo);
+            }
+        }
+        return groupToTracksInCorrelation.asMap().values();
     }
 
     public Collection<SensorReading> getReadingsAtTime(long startTime, long endTime){
@@ -43,18 +65,6 @@ public class DataStore {
         copyOfMap.putAll(fusedTracks);
         copyOfMap.asMap().values().forEach(x -> x.removeIf(update -> update.getData().getTime()<startTime || update.getData().getTime()>endTime));
         return copyOfMap.asMap();
-    }
-
-    public Collection<FusedTrackState> getTrackStatesAtTime(long currentTime) {
-        List<FusedTrackState> states = fusedTracks.asMap().entrySet().stream().map(updates -> getFusedTrackState(updates, startTime, currentTime)).collect(Collectors.toList());
-        states.forEach(state -> {
-            String cesiumId = cesiumIdsOfTraces.get(state.getId());
-            System.out.println("checking cesium id for " + state.getId() + " and it was " + cesiumId);
-            if(cesiumId!=null){
-                state.setCesiumId(cesiumId);
-            }
-        });
-        return states;
     }
 
     private FusedTrackState getFusedTrackState(Map.Entry<DataId, Collection<FusedTrack>> updates, long firstTime, long currentTime) {
@@ -96,21 +106,5 @@ public class DataStore {
 
     public void updateReadingWithCesiumId(Server.UpdateKey key, String cesiumId) {
         sensorReadings.get(key.getId().getSensorId()).stream().filter(r -> r.getReadingId().getId() == key.getId().getId()).findAny().ifPresent(reading -> reading.setCesiumId(cesiumId));
-    }
-
-    public void updateTrackWithCesiumId(Server.UpdateKey key, String cesiumId) {
-        fusedTracks.get(key.getId()).stream().filter(t -> t.getData().getTime()==key.getTime()).findAny().ifPresent(track -> track.setCesiumId(cesiumId));
-    }
-
-
-    public void updateTrackStateWithCesiumId(Server.UpdateKey updateKey, String cesiumId) {
-        if(cesiumId.equals("removed")){
-            System.out.println("removing " + updateKey.getId());
-            cesiumIdsOfTraces.remove(updateKey.getId());
-        }else {
-            System.out.println("putting " + updateKey.getId() + cesiumId);
-
-            cesiumIdsOfTraces.put(updateKey.getId(), cesiumId);
-        }
     }
 }

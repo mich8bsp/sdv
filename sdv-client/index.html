@@ -54,7 +54,7 @@
     <div ng-controller="MainController" id="track-correlations">
         <div class="btn-group-vertical" ng-repeat="correlation in trackCorrelations">
             <button type="button" class="btn btn-primary" ng-repeat="trackId in correlation">
-               {{trackId}}
+               {{trackId.id}} , {{trackId.sensorId}}
             </button>
         </div>
 

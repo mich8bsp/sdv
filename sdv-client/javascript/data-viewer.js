@@ -151,7 +151,7 @@ app.controller('MainController', function($scope, $http){
                 entityType: type,
                 name: entityId,
                 position: pos,
-                description: jsonEntity
+                description: '<p><br>' + jsonEntity +'<br></p>'
         }, entity);
         var added = viewer.entities.add(entityToAdd);
 

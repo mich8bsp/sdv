@@ -142,15 +142,19 @@ app.controller('MainController', function($scope, $http){
     }
 
     function renderEntity(viewer, entity, type, getEntityId, addShape){
+
+        var toparse = [entity];
+        var jsonEntity = ConvertJsonToTable(toparse);
         var pos = getPosition(entity);
         var entityId = getEntityId(entity);
         var entityToAdd = addShape({
                 entityType: type,
                 name: entityId,
                 position: pos,
-                description: '<div><p>' + JSON.stringify(entity) + '</p></div>'
+                description: '<p><br>' + jsonEntity +'<br></p>'
         }, entity);
         var added = viewer.entities.add(entityToAdd);
+
         return added.id;
      }
 

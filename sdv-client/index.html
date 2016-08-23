@@ -52,7 +52,8 @@
 </head>
 <body>
     <div ng-controller="MainController" id="track-correlations">
-        <div class="btn-group-vertical" ng-repeat="correlation in trackCorrelations">
+        <button type="button" class="btn btn-primary" ng-click="trackCorrelationsOpen=!trackCorrelationsOpen">Track Correlations</button>
+        <div ng-show="trackCorrelationsOpen" class="btn-group-vertical" ng-repeat="correlation in trackCorrelations">
             <button type="button" class="btn btn-primary" ng-repeat="trackId in correlation">
                {{trackId.id}} , {{trackId.sensorId}}
             </button>

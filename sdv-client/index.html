@@ -59,7 +59,12 @@
         }
 
         #options-panel {
-            z-index: 70;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 5px 8px;
+            border-radius: 5px;
+            z-index: 99;
         }
 md-backdrop.md-sidenav-backdrop {
   display: none;
@@ -67,72 +72,62 @@ md-backdrop.md-sidenav-backdrop {
     </style>
 </head>
 <body ng-controller="MainController">
-<!--div ng-controller="MainController" id="track-correlations">
-    <button type="button" class="btn btn-primary" ng-click="trackCorrelationsOpen=!trackCorrelationsOpen">Track
-        Correlations
-    </button>
-    <div ng-show="trackCorrelationsOpen" class="btn-group-vertical" ng-repeat="correlation in trackCorrelations">
-        <button type="button" class="btn btn-primary" ng-repeat="trackId in correlation">
-            {{trackId.id}} , {{trackId.sensorId}}
-        </button>
+    <div id="options-button">
+        <button type="button" class="btn btn-primary" ng-click="optionsOpen=!optionsOpen">Options</button>
     </div>
-</div-->
-<div id="options-button">
-    <button type="button" class="btn btn-primary" ng-click="optionsOpen=!optionsOpen">Options</button>
-</div>
-<div ng-show="optionsOpen" ng-controller="OptionsController" id="options-panel">
-    <section layout="column">
+    <div ng-show="optionsOpen" ng-controller="OptionsController">
+        <section layout="column">
 
-        <md-content flex>
-            <div layout="column" layout-align="top end">
-                <div>
-                    <md-button ng-click="toggleRightFilters()"
-                               ng-hide="isOpenRight()"
-                               class="md-primary">
-                        Toggle filters
-                    </md-button>
-                    <md-button ng-click="toggleRightCorrelations()"
-                               ng-hide="isOpenRight()"
-                               class="md-primary">
-                        Toggle correlations
-                    </md-button>
-                </div>
-            </div>
-        </md-content>
-        <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="rightFilters">
-            <md-toolbar class="md-theme-light">
-                <h1 class="md-toolbar-tools">Filters</h1>
-            </md-toolbar>
-            <md-content ng-controller="RightCtrl" layout-padding>
-                <form>
-                    <div>filters here</div>
-                </form>
-                <md-button ng-click="close()" class="md-primary">
-                    Close Filters
-                </md-button>
-            </md-content>
-        </md-sidenav>
-        <md-sidenav class="md-sidenav-right md-whiteframe-4dp" nofocus md-component-id="rightCorrelations">
-            <md-toolbar class="md-theme-light">
-                <h1 class="md-toolbar-tools">Correlations</h1>
-            </md-toolbar>
-            <md-content ng-controller="RightCtrl" layout-padding>
-                <form>
-                    <div class="btn-group-vertical" ng-repeat="correlation in trackCorrelations">
-                        <b><u>Correlation group:</u></b>
-                        <div ng-repeat="trackId in correlation">
-                            TrackId: {{trackId.id}}, SensorId: {{trackId.sensorId}}
-                        </div>
+            <md-content flex id="options-panel">
+                <div layout="column" layout-align="top end">
+                    <div>
+                        <md-button ng-click="toggleRightFilters()"
+                                   ng-hide="isOpenRight()"
+                                   class="md-primary">
+                            Toggle filters
+                        </md-button>
+                        <md-button ng-click="toggleRightCorrelations()"
+                                   ng-hide="isOpenRight()"
+                                   class="md-primary">
+                            Toggle correlations
+                        </md-button>
                     </div>
-                </form>
-                <md-button ng-click="close()" class="md-primary">
-                    Close Correlations
-                </md-button>
+                </div>
             </md-content>
-        </md-sidenav>
-    </section>
-</div>
-<div id="cesiumContainer">
-</div>
+            <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="rightFilters">
+                <md-toolbar class="md-theme-light">
+                    <h1 class="md-toolbar-tools">Filters</h1>
+                </md-toolbar>
+                <md-content ng-controller="RightCtrl" layout-padding>
+                    <form>
+                        <div>filters here</div>
+                    </form>
+                    <md-button ng-click="close()" class="md-primary">
+                        Close Filters
+                    </md-button>
+                </md-content>
+            </md-sidenav>
+            <md-sidenav class="md-sidenav-right md-whiteframe-4dp" nofocus md-component-id="rightCorrelations">
+                <md-toolbar class="md-theme-light">
+                    <h1 class="md-toolbar-tools">Correlations</h1>
+                </md-toolbar>
+                <md-content ng-controller="RightCtrl" layout-padding>
+                    <form>
+                        <div class="btn-group-vertical" ng-repeat="correlation in trackCorrelations">
+                            <b><u>Correlation group:</u></b>
+                            <div ng-repeat="trackId in correlation">
+                                TrackId: {{trackId.id}}, SensorId: {{trackId.sensorId}}
+                            </div>
+                        </div>
+                    </form>
+                    <md-button ng-click="close()" class="md-primary">
+                        Close Correlations
+                    </md-button>
+                </md-content>
+            </md-sidenav>
+        </section>
+    </div>
+    <div id="cesiumContainer">
+    </div>
 </body>
 </html>

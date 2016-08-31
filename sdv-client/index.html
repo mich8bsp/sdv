@@ -9,7 +9,10 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
     <title>SDV</title>
-    <script src="/static/javascript/angular.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
     <script src="/static/javascript/dat.gui.js"></script>
     <script src="/static/javascript/Cesium.js"></script>
     <script src="/static/javascript/data-viewer.js"></script>
@@ -18,6 +21,11 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Angular Material Library -->
+    <script src="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+
     <style>
         @import url(/static/css/widgets.css);
 
@@ -27,6 +35,7 @@
             margin: 0;
             padding: 0;
             overflow: hidden;
+            z-index: 0;
         }
         .container-table {
             height: 100%;
@@ -40,27 +49,90 @@
             horiz-align: center;
         }
 
-        #track-correlations {
+        #options-button {
             position: absolute;
             top: 5px;
             left: 5px;
             padding: 5px 8px;
             border-radius: 5px;
-            z-index: 9;
+            z-index: 99;
         }
+
+        #options-panel {
+            z-index: 70;
+        }
+md-backdrop.md-sidenav-backdrop {
+  display: none;
+}
     </style>
 </head>
-<body>
-    <div ng-controller="MainController" id="track-correlations">
-        <button type="button" class="btn btn-primary" ng-click="trackCorrelationsOpen=!trackCorrelationsOpen">Track Correlations</button>
-        <div ng-show="trackCorrelationsOpen" class="btn-group-vertical" ng-repeat="correlation in trackCorrelations">
-            <button type="button" class="btn btn-primary" ng-repeat="trackId in correlation">
-               {{trackId.id}} , {{trackId.sensorId}}
-            </button>
-        </div>
+<body ng-controller="MainController">
+<!--div ng-controller="MainController" id="track-correlations">
+    <button type="button" class="btn btn-primary" ng-click="trackCorrelationsOpen=!trackCorrelationsOpen">Track
+        Correlations
+    </button>
+    <div ng-show="trackCorrelationsOpen" class="btn-group-vertical" ng-repeat="correlation in trackCorrelations">
+        <button type="button" class="btn btn-primary" ng-repeat="trackId in correlation">
+            {{trackId.id}} , {{trackId.sensorId}}
+        </button>
+    </div>
+</div-->
+<div id="options-button">
+    <button type="button" class="btn btn-primary" ng-click="optionsOpen=!optionsOpen">Options</button>
+</div>
+<div ng-show="optionsOpen" ng-controller="OptionsController" id="options-panel">
+    <section layout="column">
 
-    </div>
-    <div id="cesiumContainer">
-    </div>
+        <md-content flex>
+            <div layout="column" layout-align="top end">
+                <div>
+                    <md-button ng-click="toggleRightFilters()"
+                               ng-hide="isOpenRight()"
+                               class="md-primary">
+                        Toggle filters
+                    </md-button>
+                    <md-button ng-click="toggleRightCorrelations()"
+                               ng-hide="isOpenRight()"
+                               class="md-primary">
+                        Toggle correlations
+                    </md-button>
+                </div>
+            </div>
+        </md-content>
+        <md-sidenav class="md-sidenav-right md-whiteframe-4dp" md-component-id="rightFilters">
+            <md-toolbar class="md-theme-light">
+                <h1 class="md-toolbar-tools">Filters</h1>
+            </md-toolbar>
+            <md-content ng-controller="RightCtrl" layout-padding>
+                <form>
+                    <div>filters here</div>
+                </form>
+                <md-button ng-click="close()" class="md-primary">
+                    Close Filters
+                </md-button>
+            </md-content>
+        </md-sidenav>
+        <md-sidenav class="md-sidenav-right md-whiteframe-4dp" nofocus md-component-id="rightCorrelations">
+            <md-toolbar class="md-theme-light">
+                <h1 class="md-toolbar-tools">Correlations</h1>
+            </md-toolbar>
+            <md-content ng-controller="RightCtrl" layout-padding>
+                <form>
+                    <div class="btn-group-vertical" ng-repeat="correlation in trackCorrelations">
+                        <b><u>Correlation group:</u></b>
+                        <div ng-repeat="trackId in correlation">
+                            TrackId: {{trackId.id}}, SensorId: {{trackId.sensorId}}
+                        </div>
+                    </div>
+                </form>
+                <md-button ng-click="close()" class="md-primary">
+                    Close Correlations
+                </md-button>
+            </md-content>
+        </md-sidenav>
+    </section>
+</div>
+<div id="cesiumContainer">
+</div>
 </body>
 </html>

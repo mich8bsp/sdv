@@ -100,7 +100,20 @@ md-backdrop.md-sidenav-backdrop {
                 </md-toolbar>
                 <md-content ng-controller="RightCtrl" layout-padding>
                     <form>
-                        <div>filters here</div>
+                        <div class="btn-group-vertical" ng-repeat="dataFilter in dataFilters">
+                                <div>
+                                    <b><u>System {{dataFilter.sensorId}}</u></b><br>
+                                    Show sensor data: <input type="checkbox" ng-model="dataFilter.isShown" ng-change="filtersChanged()"><br>
+                                    Show sensor readings: <input type="checkbox" ng-model="dataFilter.readingsShown" ng-change="filtersChanged()"><br>
+                                    Show tracks:<br>
+                                    <ul>
+                                        <li ng-repeat="track in dataFilter.tracksShown">
+                                            {{track.trackId}}
+                                            <input type="checkbox" ng-model="track.isTrackShown" ng-change="filtersChanged()"><br>
+                                        </li>
+                                    </ul>
+                                </div>
+                        </div>
                     </form>
                     <md-button ng-click="close()" class="md-primary">
                         Close Filters

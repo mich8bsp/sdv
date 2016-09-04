@@ -48,7 +48,7 @@ app.controller('MainController', function($scope, $http){
                     if(currentTimeMS > lastTimeMS){
                         $http.get("/readings/" + lastTimeMS + "/"+ currentTimeMS).then(function(response){
                             if(response.data.length > 0){
-                                    renderReadings(viewer, response.data);
+                                    renderReadings(viewer, response.data, $scope);
                           }
                         });
                     }else{
@@ -130,11 +130,12 @@ app.controller('MainController', function($scope, $http){
         }
     }
 
-    function renderReadings(viewer, toRender){
+    function renderReadings(viewer, toRender, $scope){
         cesiumIdMappings = []
         for (var i = 0; i < toRender.length; i++) {
             var reading = toRender[i];
-            var cesiumId = renderEntity(viewer, reading, "reading", getReadingEntityId, addPoint);
+            var toShow = isToShowEntity(reading, $scope);
+            var cesiumId = renderEntity(viewer, reading, "reading", getReadingEntityId, addPoint, toShow);
             cesiumIdMappings.push({
                     "id": reading["id"],
                     "sensorId": reading["sensorId"],
@@ -149,7 +150,7 @@ app.controller('MainController', function($scope, $http){
               });
     }
 
-    function renderEntity(viewer, entity, type, getEntityId, addShape){
+    function renderEntity(viewer, entity, type, getEntityId, addShape, toShow){
 
         var toparse = [entity];
         var jsonEntity = ConvertJsonToTable(toparse);
@@ -161,6 +162,7 @@ app.controller('MainController', function($scope, $http){
                 sensorId: getSensorId(entity),
                 name: entityId,
                 position: pos,
+                show: toShow,
                 description: '<p><br>' + jsonEntity +'<br></p>'
         }, entity);
         var added = viewer.entities.add(entityToAdd);
@@ -168,5 +170,13 @@ app.controller('MainController', function($scope, $http){
         return added.id;
      }
 
-
+    function isToShowEntity(entity, $scope){
+        var dataFilters = $scope.dataFilters;
+        for(var i=0;i<dataFilters.length;i++){
+            var filter = dataFilters[i];
+            if(filter["sensorId"]==getSensorId(entity)){
+                return (filter["isShown"] && filter["readingsShown"]);
+            }
+        }
+    }
 });

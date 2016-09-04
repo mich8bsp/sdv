@@ -16,9 +16,20 @@ public class DataStore {
     private TreeMultimap<DataId, FusedTrack> fusedTracks = TreeMultimap.create();
     private List<TrackCorrelation> correlations = new LinkedList<>();
 
+    private List<Filters> filtersList = new LinkedList<>();
+
     private long startTime;
     private long endTime;
 
+    public List<Filters> getFilters(){
+        return filtersList;
+    }
+
+    public void initFilters(){
+        Set<Integer> sensorIds = fusedTracks.keySet().stream().map(DataId::getSensorId).collect(Collectors.toSet());
+        sensorIds.addAll(sensorReadings.keySet());
+        sensorIds.forEach(id -> filtersList.add(new Filters(id, this)));
+    }
 
     public Collection<Collection<DataId>> getCorrelationsAtTime(long startTime, long endTime){
         List<TrackCorrelation> relevantCorrelations = correlations.stream().filter(corr -> corr.getTimeOfCorrelation()>=startTime && corr.getTimeOfCorrelation()<=endTime).collect(Collectors.toList());
@@ -106,5 +117,10 @@ public class DataStore {
 
     public void updateReadingWithCesiumId(Server.UpdateKey key, String cesiumId) {
         sensorReadings.get(key.getId().getSensorId()).stream().filter(r -> r.getReadingId().getId() == key.getId().getId()).findAny().ifPresent(reading -> reading.setCesiumId(cesiumId));
+    }
+
+    public List<Integer> getAllTracksBySensor(int sensorId){
+        return this.fusedTracks.keySet().stream().filter(key->key.getSensorId()==sensorId).map(key->fusedTracks.get(key).first())
+                .map(track -> track.getId().getId()).collect(Collectors.toList());
     }
 }

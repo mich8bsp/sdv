@@ -45,14 +45,13 @@ public class Server {
         router.post("/newreadings-mapping/").handler(context -> addMapping(context, store::updateReadingWithCesiumId));
         router.route("/track-correlation/:start/:end").handler(routingContext -> handleRequest(routingContext, this::getCorrelationsJson));
         router.route("/timeframe").handler(this::getTimeframe);
+        router.route("/filters").handler(this::getFilters);
 
         router.route("/static/*").handler(StaticHandler.create("sdv-client").setCachingEnabled(false));
         router.get("/sdv").handler(context -> context.reroute("/static/index.html"));
 
         server.requestHandler(router::accept).listen(8080);
     }
-
-
 
     private void addMapping(RoutingContext routingContext, BiConsumer<UpdateKey, String> updateFunction) {
         JsonArray allNewMappings = routingContext.getBodyAsJsonArray();
@@ -76,8 +75,23 @@ public class Server {
         new SensorReadingInputParser().addToStore(store, "readings.csv");
         new FusedTrackInputParser().addToStore(store, "tracks.2.csv");
         new TrackCorrelationInputParser().addToStore(store, "correlations.csv");
+        store.initFilters();
     }
 
+    private void getFilters(RoutingContext context) {
+        HttpServerResponse response = context.response();
+        response.putHeader("content-type", "application/json");
+        JsonArray resultJson = new JsonArray();
+
+        List<Filters> filters = store.getFilters();
+        filters.forEach(filter -> resultJson.add(filter.toJson()));
+
+        // Write to the response and end it
+        response.setChunked(true);
+        response.write(resultJson.toString());
+        response.end();
+
+    }
 
     private void getTimeframe(RoutingContext context) {
         HttpServerResponse response = context.response();

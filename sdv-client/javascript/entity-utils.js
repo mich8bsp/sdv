@@ -11,6 +11,14 @@ function getTrackEntityId(track) {
     return "Track " + track["id"].toString() + "-" + track["sensorId"].toString();
 }
 
+function getSensorId(entity){
+    return entity["sensorId"];
+}
+
+function getGenericEntityId(entity){
+    return entity["id"];
+}
+
 function getPosition(entity){
     return Cesium.Cartesian3.fromDegrees(entity["lon"], entity["lat"], entity["alt"]);
 }

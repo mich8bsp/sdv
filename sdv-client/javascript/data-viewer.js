@@ -4,66 +4,6 @@
 
 var app = angular.module('sdv', ['ngMaterial']);
 
-app.controller('OptionsController', function ($scope, $timeout, $mdSidenav, $log) {
-    $scope.toggleRightFilters = buildToggler('rightFilters');
-    $scope.toggleRightCorrelations = buildToggler('rightCorrelations')
-    $scope.isOpenRight = function(){
-      return $mdSidenav('rightFilters').isOpen() || $mdSidenav('rightCorrelations').isOpen();
-    };
-    /**
-     * Supplies a function that will continue to operate until the
-     * time is up.
-     */
-    function debounce(func, wait, context) {
-      var timer;
-      return function debounced() {
-        var context = $scope,
-            args = Array.prototype.slice.call(arguments);
-        $timeout.cancel(timer);
-        timer = $timeout(function() {
-          timer = undefined;
-          func.apply(context, args);
-        }, wait || 10);
-      };
-    }
-    /**
-     * Build handler to open/close a SideNav; when animation finishes
-     * report completion in console
-     */
-    function buildDelayedToggler(navID) {
-      return debounce(function() {
-        // Component lookup should always be available since we are not using `ng-if`
-        $mdSidenav(navID)
-          .toggle()
-          .then(function () {
-            $log.debug("toggle " + navID + " is done");
-          });
-      }, 200);
-    }
-    function buildToggler(navID) {
-      return function() {
-        // Component lookup should always be available since we are not using `ng-if`
-        $mdSidenav(navID)
-          .toggle()
-          .then(function () {
-            $log.debug("toggle " + navID + " is done");
-          });
-      }
-    }
-  })
-  .controller('RightCtrl', function ($scope, $timeout, $mdSidenav, $log) {
-    $scope.close = function () {
-      // Component lookup should always be available since we are not using `ng-if`
-      $mdSidenav('rightFilters').close()
-        .then(function () {
-          $log.debug("close RIGHT is done");
-        });
-      $mdSidenav('rightCorrelations').close()
-                .then(function () {
-                  $log.debug("close RIGHT is done");
-      });
-    };
-  });
 
 
 app.controller('MainController', function($scope, $http){
@@ -91,63 +31,7 @@ app.controller('MainController', function($scope, $http){
                 duration: 3.0
         });
 
-        $http.get("/filters/").then(function(response){
-            $scope.dataFilters = response.data;
-            $scope.lastFilters = JSON.parse(JSON.stringify(response.data));
-            $scope.filtersChanged = function(){
-                    var dataFilters = $scope.dataFilters;
-                    var lastFilters = $scope.lastFilters;
-                    for(var i=0;i<dataFilters.length;i++){
-                        var currentFilter = dataFilters[i];
-                        var lastFilter = lastFilters[i];
-                        if(currentFilter["isShown"]!=lastFilter["isShown"]){
-                            sensorShownChanged(currentFilter["sensorId"], currentFilter["isShown"]);
-                        }else if(currentFilter["readingsShown"]!=lastFilter["readingsShown"]){
-                            sensorReadingsChanged(currentFilter["sensorId"], currentFilter["readingsShown"]);
-                        }else{
-                            for(var j=0;j<currentFilter["tracksShown"].length;j++){
-                                var currentTrackShown = currentFilter["tracksShown"][j];
-                                var lastTrackShown = lastFilter["tracksShown"][j];
-                                if(currentTrackShown["isTrackShown"]!=lastTrackShown["isTrackShown"]){
-                                    sensorTrackChanged(currentFilter["sensorId"], currentTrackShown["trackId"], currentTrackShown["isTrackShown"]);
-                                }
-                            }
-                        }
-                    }
-                    $scope.lastFilters = JSON.parse(JSON.stringify(dataFilters));
-                }
-
-                function sensorShownChanged(sensorId, isShown){
-                    var collection = viewer.entities.values;
-                        for(var i=0;i<collection.length;i++){
-                            if(collection[i]["sensorId"]==sensorId){
-                                   collection[i].show = isShown;
-                             }
-                        }
-                    console.log("sensor changed " + sensorId + " to " + isShown);
-                }
-
-                function sensorReadingsChanged(sensorId, isShown){
-                    var collection = viewer.entities.values;
-                    for(var i=0;i<collection.length;i++){
-                        if(collection[i]["entityType"]=="reading" && collection[i]["sensorId"]==sensorId){
-                            collection[i].show = isShown;
-                        }
-                    }
-                    console.log("sensor readings changed " + sensorId + " to " + isShown);
-
-                }
-
-                function sensorTrackChanged(sensorId, trackId, isShown){
-                  var collection = viewer.entities.values;
-                         for(var i=0;i<collection.length;i++){
-                             if(collection[i]["entityType"]=="track" && collection[i]["sensorId"]==sensorId && collection[i]["entityId"]==trackId){
-                                     collection[i].show = isShown;
-                             }
-                         }
-                    console.log("sensor track changed " + sensorId + " trackId " + trackId + " to " + isShown);
-                }
-        });
+        buildFilters($http, $scope, viewer);
 
         var lastTime = Cesium.JulianDate.fromDate(new Date(0));
         $http.get("/tracks/" + timeOfFirst + "/" + timeOfLast).then(function(response){

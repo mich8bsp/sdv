@@ -86,8 +86,6 @@ app.controller('MainController', function($scope, $http){
                 })
         });
 
-
-
         viewer.camera.flyTo({
                 destination: Cesium.Cartesian3.fromDegrees(34.807491, 31.974653, 1000000.0),
                 duration: 3.0
@@ -215,7 +213,9 @@ app.controller('MainController', function($scope, $http){
                             uri : '/static/Duck.glb',
                             minimumPixelSize : 64
                         },
-
+                        entityType: "track",
+                        entityId: getGenericEntityId(updates[0]),
+                        sensorId: getSensorId(updates[0]),
                         path : {
                             resolution : 1,
                             material : new Cesium.PolylineGlowMaterialProperty({
